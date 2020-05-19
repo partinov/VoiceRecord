@@ -18,7 +18,7 @@ import java.time.format.DateTimeFormatter
 
 class MainActivity : AppCompatActivity() {
 
-    private var output: String? = ""
+    private var outputDir  = getExternalFilesDir(null)?.absolutePath ?: null
     private var mediaRecorder: MediaRecorder? = null
     private var state: Boolean = false
     private var recordingStopped: Boolean = false
@@ -45,8 +45,9 @@ class MainActivity : AppCompatActivity() {
 
         stop_button.setOnClickListener {
             stopRecording()
-        }
+        } // stop_button.setOnClickListener
 
+        // Display the files from the directory in the GUI.
         updateList()
     } // onCreate
 
@@ -66,11 +67,9 @@ class MainActivity : AppCompatActivity() {
         val time = LocalDateTime.now().format(DateTimeFormatter.ofPattern("HH:mm:ss_dd-MM-yyyy"))
 
         // Set output path.
-        output = (getExternalFilesDir(null)?.absolutePath ?: null) + "/Recording_" + time + ".mp3"
+        val output = "$outputDir/Recording_$time.mp3"
 
-        //Toast.makeText(this, output, Toast.LENGTH_SHORT).show()
-
-        // Set up media recorder.
+        // Set up the media recorder.
         mediaRecorder = MediaRecorder().apply {
             setAudioSource(MediaRecorder.AudioSource.MIC)
             setOutputFormat(MediaRecorder.OutputFormat.MPEG_4)
@@ -94,6 +93,7 @@ class MainActivity : AppCompatActivity() {
     } // startRecording
 
     private fun stopRecording() {
+        // Check if recording was actually started.
         if(state) {
             mediaRecorder?.stop()
             mediaRecorder?.release()
