@@ -91,6 +91,7 @@ class MainActivity : AppCompatActivity() {
             mediaPlayer?.setDataSource(fis.fd)
             mediaPlayer?.prepare()
             mediaPlayer?.start()
+            mediaPlayer?.setOnCompletionListener { stopSong() }
 
             playing = true
 
@@ -100,8 +101,13 @@ class MainActivity : AppCompatActivity() {
 
     // Event listener function for stop playing sound button.
     private fun stopSong(){
+
         // Check if app is playing sound.
         if(playing) {
+            // Set seek bar to max value.
+            seekBar.progress = mediaPlayer?.duration!!
+
+            // Stop media player/
             mediaPlayer?.stop()
             mediaPlayer?.release()
 
