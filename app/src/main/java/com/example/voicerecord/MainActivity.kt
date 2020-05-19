@@ -24,6 +24,7 @@ class MainActivity : AppCompatActivity() {
     private var  mediaPlayer: MediaPlayer? = null
     private var mediaRecorder: MediaRecorder? = null
     private var recording: Boolean = false
+    private var playing: Boolean = false
     private var adapter: ArrayAdapter<String>? = null
     private var currentSong: String? = null
     private var handler: Handler = Handler()
@@ -34,35 +35,39 @@ class MainActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
 
-        // Check for permissions.
+        // Check for permissions and request if needed.
         if (ContextCompat.checkSelfPermission(this,
                 android.Manifest.permission.RECORD_AUDIO) != PackageManager.PERMISSION_GRANTED
             && ContextCompat.checkSelfPermission(this,
                 android.Manifest.permission.WRITE_EXTERNAL_STORAGE) != PackageManager.PERMISSION_GRANTED
             && ContextCompat.checkSelfPermission(this,
                 android.Manifest.permission.READ_EXTERNAL_STORAGE) != PackageManager.PERMISSION_GRANTED) {
-            // If permissions aren't granted, request them.
             val permissions = arrayOf(android.Manifest.permission.RECORD_AUDIO, android.Manifest.permission.WRITE_EXTERNAL_STORAGE, android.Manifest.permission.READ_EXTERNAL_STORAGE)
             ActivityCompat.requestPermissions(this, permissions,0)
         } // if
 
+        // On-click listener for list of files.
         list.setOnItemClickListener { parent, view, position, id ->
             currentSong = (getExternalFilesDir(null)?.absolutePath) + "/" + adapter?.getItem(position)
             song_name.text = adapter?.getItem(position)
         }
 
+        // On-click listener for record button.
         record_button.setOnClickListener {
            startRecording()
         } // record_button.setOnClickListener
 
+        // On-click listener for stop recording button.
         stop_button.setOnClickListener {
             stopRecording()
         } // stop_button.setOnClickListener
 
+        // On-click listener for play sound button.
         play_button.setOnClickListener {
             playSong()
         }
 
+        // On-click listener for stop playing sound button.
         stop_playing_button.setOnClickListener {
             stopSong()
         }
@@ -71,34 +76,60 @@ class MainActivity : AppCompatActivity() {
         updateList()
     } // onCreate
 
+    // Event listener function for start playing sound button.
     private fun playSong(){
-        val fis = FileInputStream(File(currentSong))
+        // Check if app is already playing sound.
+        if(playing){
+            Toast.makeText(this, "You are already playing a sound!", Toast.LENGTH_SHORT).show()
+        }
+        else {
+            // Open file into app.
+            val fis = FileInputStream(File(currentSong))
 
-        mediaPlayer = MediaPlayer()
-        mediaPlayer?.setDataSource(fis.fd)
-        mediaPlayer?.prepare()
-        mediaPlayer?.start()
+            // Set up media player.
+            mediaPlayer = MediaPlayer()
+            mediaPlayer?.setDataSource(fis.fd)
+            mediaPlayer?.prepare()
+            mediaPlayer?.start()
 
-        initialiseSeekBar()
+            playing = true
+
+            initialiseSeekBar()
+        }
     }
 
+    // Event listener function for stop playing sound button.
+    private fun stopSong(){
+        // Check if app is playing sound.
+        if(playing) {
+            mediaPlayer?.stop()
+            mediaPlayer?.release()
+
+            // Remove callbacks for seek bar updates.
+            handler.removeCallbacks(runnable)
+
+            playing = false
+        }
+        else {
+            Toast.makeText(this, "You aren't playing a sound!", Toast.LENGTH_SHORT).show()
+        }
+    }
+
+    // A function that initialises the seek bar and sets up callbacks to update it.
     private fun initialiseSeekBar(){
         seekBar.max = mediaPlayer?.duration!!
         seekBar.progress = mediaPlayer?.currentPosition!!
 
+        // Create the callback function to update seek bar.
         runnable = Runnable {
             seekBar.progress = mediaPlayer?.currentPosition!!
 
-            handler.postDelayed(runnable, 1000)
+            // Keep calling the function until cancelled.
+            handler.postDelayed(runnable, 500)
         }
-        handler.postDelayed(runnable, 1000)
-    }
 
-    private fun stopSong(){
-        mediaPlayer?.stop()
-        mediaPlayer?.release()
-
-        handler.removeCallbacks(runnable)
+        // Start the callback chain.
+        handler.postDelayed(runnable, 500)
     }
 
     // A function that can be called to update the list.
@@ -111,6 +142,7 @@ class MainActivity : AppCompatActivity() {
         list.adapter = adapter
     } // updateList
 
+    // Event listener function for start recording sound button.
     @RequiresApi(Build.VERSION_CODES.O)
     private fun startRecording() {
         //Get current time and date in proper format and output dir.
@@ -143,6 +175,7 @@ class MainActivity : AppCompatActivity() {
         } // catch
     } // startRecording
 
+    // Event listener function for stop recording sound button.
     private fun stopRecording() {
         // Check if recording was actually started.
         if(recording) {
