@@ -1,17 +1,20 @@
 package com.example.voicerecord
 
-import android.content.Context
 import android.content.pm.PackageManager
 import android.media.MediaRecorder
+import android.os.Build
 import android.os.Bundle
-import android.os.Environment
+import android.widget.ArrayAdapter
 import androidx.appcompat.app.AppCompatActivity
 import android.widget.Toast
+import androidx.annotation.RequiresApi
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
-
 import kotlinx.android.synthetic.main.activity_main.*
+import java.io.File
 import java.io.IOException
+import java.time.LocalDateTime
+import java.time.format.DateTimeFormatter
 
 class MainActivity : AppCompatActivity() {
 
@@ -20,6 +23,7 @@ class MainActivity : AppCompatActivity() {
     private var state: Boolean = false
     private var recordingStopped: Boolean = false
 
+    @RequiresApi(Build.VERSION_CODES.O)
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
@@ -42,11 +46,29 @@ class MainActivity : AppCompatActivity() {
         stop_button.setOnClickListener {
             stopRecording()
         }
+
+        updateList()
     } // onCreate
 
+    // A function that can be called to update the list.
+    private fun updateList(){
+        // Get the filenames of the desired directory as a list.
+        val filesList = File((getExternalFilesDir(null)?.absolutePath ?: null)).list()
+        // Put the list into the adapter so it could be listed in the GUI.
+        val adapter = ArrayAdapter(this, android.R.layout.simple_list_item_1, filesList)
+        // Add adapter to the list.
+        list.adapter = adapter
+    } // updateList
+
+    @RequiresApi(Build.VERSION_CODES.O)
     private fun startRecording() {
+        //Get current time and date in proper format.
+        val time = LocalDateTime.now().format(DateTimeFormatter.ofPattern("HH:mm:ss_dd-MM-yyyy"))
+
         // Set output path.
-        output = (getExternalFilesDir(null)?.absolutePath ?: null) + "/recording.mp3"
+        output = (getExternalFilesDir(null)?.absolutePath ?: null) + "/Recording_" + time + ".mp3"
+
+        //Toast.makeText(this, output, Toast.LENGTH_SHORT).show()
 
         // Set up media recorder.
         mediaRecorder = MediaRecorder().apply {
@@ -77,12 +99,11 @@ class MainActivity : AppCompatActivity() {
             mediaRecorder?.release()
             state = false
             Toast.makeText(this, "Recording stopped!", Toast.LENGTH_SHORT).show()
+            updateList()
         } // if
         else {
             Toast.makeText(this, "You are not recording right now!", Toast.LENGTH_SHORT).show()
         } // else
     } // startRecording
-
-
 
 } // MainActivity
