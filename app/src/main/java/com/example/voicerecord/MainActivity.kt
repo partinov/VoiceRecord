@@ -18,10 +18,8 @@ import java.time.format.DateTimeFormatter
 
 class MainActivity : AppCompatActivity() {
 
-    private var outputDir  = getExternalFilesDir(null)?.absolutePath ?: null
     private var mediaRecorder: MediaRecorder? = null
-    private var state: Boolean = false
-    private var recordingStopped: Boolean = false
+    private var recording: Boolean = false
 
     @RequiresApi(Build.VERSION_CODES.O)
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -49,6 +47,7 @@ class MainActivity : AppCompatActivity() {
 
         // Display the files from the directory in the GUI.
         updateList()
+
     } // onCreate
 
     // A function that can be called to update the list.
@@ -59,12 +58,14 @@ class MainActivity : AppCompatActivity() {
         val adapter = ArrayAdapter(this, android.R.layout.simple_list_item_1, filesList)
         // Add adapter to the list.
         list.adapter = adapter
+
     } // updateList
 
     @RequiresApi(Build.VERSION_CODES.O)
     private fun startRecording() {
-        //Get current time and date in proper format.
+        //Get current time and date in proper format and output dir.
         val time = LocalDateTime.now().format(DateTimeFormatter.ofPattern("HH:mm:ss_dd-MM-yyyy"))
+        val outputDir = getExternalFilesDir(null)?.absolutePath ?: null
 
         // Set output path.
         val output = "$outputDir/Recording_$time.mp3"
@@ -81,7 +82,7 @@ class MainActivity : AppCompatActivity() {
         try {
             mediaRecorder?.prepare()
             mediaRecorder?.start()
-            state = true
+            recording = true
             Toast.makeText(this, "Recording started!", Toast.LENGTH_SHORT).show()
         } // try
         catch (e: IllegalStateException) {
@@ -90,20 +91,22 @@ class MainActivity : AppCompatActivity() {
         catch (e: IOException) {
             e.printStackTrace()
         } // catch
+
     } // startRecording
 
     private fun stopRecording() {
         // Check if recording was actually started.
-        if(state) {
+        if(recording) {
             mediaRecorder?.stop()
             mediaRecorder?.release()
-            state = false
+            recording = false
             Toast.makeText(this, "Recording stopped!", Toast.LENGTH_SHORT).show()
             updateList()
         } // if
         else {
             Toast.makeText(this, "You are not recording right now!", Toast.LENGTH_SHORT).show()
         } // else
+
     } // startRecording
 
 } // MainActivity
