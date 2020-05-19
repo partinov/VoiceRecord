@@ -4,6 +4,7 @@ import android.content.pm.PackageManager
 import android.media.MediaRecorder
 import android.os.Build
 import android.os.Bundle
+import android.widget.Adapter
 import android.widget.ArrayAdapter
 import androidx.appcompat.app.AppCompatActivity
 import android.widget.Toast
@@ -20,6 +21,7 @@ class MainActivity : AppCompatActivity() {
 
     private var mediaRecorder: MediaRecorder? = null
     private var recording: Boolean = false
+    private var adapter: ArrayAdapter<String>? = null
 
     @RequiresApi(Build.VERSION_CODES.O)
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -45,9 +47,14 @@ class MainActivity : AppCompatActivity() {
             stopRecording()
         } // stop_button.setOnClickListener
 
+        list.setOnItemClickListener { parent, view, position, id ->
+            val element = adapter?.getItem(position)
+
+
+        }
+
         // Display the files from the directory in the GUI.
         updateList()
-
     } // onCreate
 
     // A function that can be called to update the list.
@@ -55,10 +62,9 @@ class MainActivity : AppCompatActivity() {
         // Get the filenames of the desired directory as a list.
         val filesList = File((getExternalFilesDir(null)?.absolutePath ?: null)).list()
         // Put the list into the adapter so it could be listed in the GUI.
-        val adapter = ArrayAdapter(this, android.R.layout.simple_list_item_1, filesList)
+        adapter = ArrayAdapter(this, android.R.layout.simple_list_item_1, filesList)
         // Add adapter to the list.
         list.adapter = adapter
-
     } // updateList
 
     @RequiresApi(Build.VERSION_CODES.O)
@@ -91,7 +97,6 @@ class MainActivity : AppCompatActivity() {
         catch (e: IOException) {
             e.printStackTrace()
         } // catch
-
     } // startRecording
 
     private fun stopRecording() {
@@ -106,7 +111,6 @@ class MainActivity : AppCompatActivity() {
         else {
             Toast.makeText(this, "You are not recording right now!", Toast.LENGTH_SHORT).show()
         } // else
-
     } // startRecording
 
 } // MainActivity
