@@ -1,5 +1,6 @@
 package com.example.voicerecord
 
+import android.content.Context
 import android.content.pm.PackageManager
 import android.media.MediaRecorder
 import android.os.Bundle
@@ -14,7 +15,7 @@ import java.io.IOException
 
 class MainActivity : AppCompatActivity() {
 
-    private var output: String? = null
+    private var output: String? = ""
     private var mediaRecorder: MediaRecorder? = null
     private var state: Boolean = false
     private var recordingStopped: Boolean = false
@@ -22,14 +23,6 @@ class MainActivity : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
-
-        output = Environment.getDataDirectory().absolutePath + "/recording.mp3"
-        mediaRecorder = MediaRecorder()
-
-        //mediaRecorder?.setAudioSource(MediaRecorder.AudioSource.MIC)
-        mediaRecorder?.setOutputFormat(MediaRecorder.OutputFormat.MPEG_4)
-        mediaRecorder?.setAudioEncoder(MediaRecorder.AudioEncoder.AAC)
-        mediaRecorder?.setOutputFile(output)
 
         record_button.setOnClickListener {
             // Check for permissions.
@@ -46,36 +39,50 @@ class MainActivity : AppCompatActivity() {
             } // else
         } // record_button.setOnClickListener
 
-
+        stop_button.setOnClickListener {
+            stopRecording()
+        }
     } // onCreate
 
     private fun startRecording() {
+        // Set output path.
+        output = (getExternalFilesDir(null)?.absolutePath ?: null) + "/recording.mp3"
+
+        // Set up media recorder.
+        mediaRecorder = MediaRecorder().apply {
+            setAudioSource(MediaRecorder.AudioSource.MIC)
+            setOutputFormat(MediaRecorder.OutputFormat.MPEG_4)
+            setAudioEncoder(MediaRecorder.AudioEncoder.AAC)
+            setOutputFile(output)
+        } // mediaRecorder
+
+        // Start recording.
         try {
             mediaRecorder?.prepare()
             mediaRecorder?.start()
             state = true
             Toast.makeText(this, "Recording started!", Toast.LENGTH_SHORT).show()
-        } catch (e: IllegalStateException) {
+        } // try
+        catch (e: IllegalStateException) {
             e.printStackTrace()
-        } catch (e: IOException) {
+        } // catch
+        catch (e: IOException) {
             e.printStackTrace()
-        }
-    }
-/*
-    override fun onCreateOptionsMenu(menu: Menu): Boolean {
-        // Inflate the menu; this adds items to the action bar if it is present.
-        menuInflater.inflate(R.menu.menu_main, menu)
-        return true
-    } // onCreateOptionsMenu
+        } // catch
+    } // startRecording
 
-    override fun onOptionsItemSelected(item: MenuItem): Boolean {
-        // Handle action bar item clicks here. The action bar will
-        // automatically handle clicks on the Home/Up button, so long
-        // as you specify a parent activity in AndroidManifest.xml.
-        return when (item.itemId) {
-            R.id.action_settings -> true
-            else -> super.onOptionsItemSelected(item)
-        } // return when
-    } // onOptionsItemSelected
-*/
-}
+    private fun stopRecording() {
+        if(state) {
+            mediaRecorder?.stop()
+            mediaRecorder?.release()
+            state = false
+            Toast.makeText(this, "Recording stopped!", Toast.LENGTH_SHORT).show()
+        } // if
+        else {
+            Toast.makeText(this, "You are not recording right now!", Toast.LENGTH_SHORT).show()
+        } // else
+    } // startRecording
+
+
+
+} // MainActivity
