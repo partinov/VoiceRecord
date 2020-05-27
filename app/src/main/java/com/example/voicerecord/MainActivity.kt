@@ -19,6 +19,7 @@ import java.io.IOException
 import java.time.LocalDateTime
 import java.time.format.DateTimeFormatter
 
+
 class MainActivity : AppCompatActivity() {
 
     private var  mediaPlayer: MediaPlayer? = null
@@ -38,9 +39,9 @@ class MainActivity : AppCompatActivity() {
         // Check for permissions and request if needed.
         if (ContextCompat.checkSelfPermission(this,
                 android.Manifest.permission.RECORD_AUDIO) != PackageManager.PERMISSION_GRANTED
-            && ContextCompat.checkSelfPermission(this,
+            || ContextCompat.checkSelfPermission(this,
                 android.Manifest.permission.WRITE_EXTERNAL_STORAGE) != PackageManager.PERMISSION_GRANTED
-            && ContextCompat.checkSelfPermission(this,
+            || ContextCompat.checkSelfPermission(this,
                 android.Manifest.permission.READ_EXTERNAL_STORAGE) != PackageManager.PERMISSION_GRANTED) {
             val permissions = arrayOf(android.Manifest.permission.RECORD_AUDIO, android.Manifest.permission.WRITE_EXTERNAL_STORAGE, android.Manifest.permission.READ_EXTERNAL_STORAGE)
             ActivityCompat.requestPermissions(this, permissions,0)
@@ -50,7 +51,7 @@ class MainActivity : AppCompatActivity() {
         list.setOnItemClickListener { parent, view, position, id ->
             currentSong = (getExternalFilesDir(null)?.absolutePath) + "/" + adapter?.getItem(position)
             song_name.text = adapter?.getItem(position)
-        }
+        } // setOnItemClickListener
 
         // On-click listener for record button.
         record_button.setOnClickListener {
@@ -65,23 +66,39 @@ class MainActivity : AppCompatActivity() {
         // On-click listener for play sound button.
         play_button.setOnClickListener {
             playSong()
-        }
+        } // play_button.setOnClickListener
 
         // On-click listener for stop playing sound button.
         stop_playing_button.setOnClickListener {
             stopSong()
-        }
+        } // stop_playing_button.setOnClickListener
 
         // Display the files from the directory in the GUI.
         updateList()
     } // onCreate
+
+    // A function that gets called when the user makes a choice about accepting or denying the
+    // permission requests. It is used to handle the case where the user has not accepted the
+    // permissions required for the proper operation of the app.
+    override fun onRequestPermissionsResult(requestCode: Int, permissions: Array<String>, grantResults: IntArray) {
+        if (requestCode == 0 && grantResults.isNotEmpty()
+            && (grantResults[0] == PackageManager.PERMISSION_DENIED
+                    || grantResults[1] == PackageManager.PERMISSION_DENIED
+                    || grantResults[2] == PackageManager.PERMISSION_DENIED)) {
+                record_button.isEnabled = false
+                stop_button.isEnabled = false
+                stop_playing_button.isEnabled = false
+                play_button.isEnabled = false
+                Toast.makeText(this, "Insufficient permissions granted! Please restart the app and accept all permissions.", Toast.LENGTH_SHORT).show()
+        } // if
+    } // onRequestPermissionsResult
 
     // Event listener function for start playing sound button.
     private fun playSong(){
         // Check if app is already playing sound.
         if(playing){
             Toast.makeText(this, "You are already playing a sound!", Toast.LENGTH_SHORT).show()
-        }
+        } // if
         else {
             // Open file into app.
             val fis = FileInputStream(File(currentSong))
@@ -96,12 +113,11 @@ class MainActivity : AppCompatActivity() {
             playing = true
 
             initialiseSeekBar()
-        }
-    }
+        } // else
+    } // playSong
 
     // Event listener function for stop playing sound button.
     private fun stopSong(){
-
         // Check if app is playing sound.
         if(playing) {
             // Set seek bar to max value.
@@ -115,11 +131,11 @@ class MainActivity : AppCompatActivity() {
             handler.removeCallbacks(runnable)
 
             playing = false
-        }
+        } // if
         else {
             Toast.makeText(this, "You aren't playing a sound!", Toast.LENGTH_SHORT).show()
-        }
-    }
+        } // else
+    } // stopSong
 
     // A function that initialises the seek bar and sets up callbacks to update it.
     private fun initialiseSeekBar(){
@@ -136,7 +152,7 @@ class MainActivity : AppCompatActivity() {
 
         // Start the callback chain.
         handler.postDelayed(runnable, 500)
-    }
+    } // initialiseSeekBar
 
     // A function that can be called to update the list.
     private fun updateList(){
