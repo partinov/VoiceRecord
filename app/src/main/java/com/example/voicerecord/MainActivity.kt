@@ -73,6 +73,9 @@ class MainActivity : AppCompatActivity() {
             stopSong()
         } // stop_playing_button.setOnClickListener
 
+        // On-touch listener for seek bar to disable interaction with it.
+        seekBar.setOnTouchListener { v, event -> true }
+
         // Display the files from the directory in the GUI.
         updateList()
     } // onCreate
