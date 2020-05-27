@@ -102,6 +102,10 @@ class MainActivity : AppCompatActivity() {
         if(playing){
             Toast.makeText(this, "You are already playing a sound!", Toast.LENGTH_SHORT).show()
         } // if
+        // Check if file is selected for playback.
+        else if (currentSong == null){
+            Toast.makeText(this, "You haven't selected a file to play!", Toast.LENGTH_SHORT).show()
+        } // else if
         else {
             // Open file into app.
             val fis = FileInputStream(File(currentSong))
