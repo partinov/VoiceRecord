@@ -16,6 +16,7 @@
             android:id="@+id/textView2"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
+            android:layout_weight="1"
             android:gravity="top"
             android:singleLine="true"
             android:text="@string/recordings"
@@ -24,8 +25,9 @@
 
         <androidx.constraintlayout.widget.ConstraintLayout
             android:layout_width="match_parent"
-            android:layout_height="504dp"
-            android:layout_weight="1.5">
+            android:layout_height="wrap_content"
+            android:layout_gravity="top"
+            android:layout_weight="70">
 
             <ListView
                 android:id="@+id/list"
@@ -40,24 +42,18 @@
             </ListView>
         </androidx.constraintlayout.widget.ConstraintLayout>
 
+        <TextView
+            android:id="@+id/song_name"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:gravity="bottom|center"
+            android:text="@string/song" />
+
         <TableLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_gravity="bottom"
-            android:layout_weight="2"
             android:gravity="bottom">
-
-            <TableRow
-                android:layout_width="match_parent"
-                android:layout_height="match_parent"
-                android:gravity="center">
-
-                <TextView
-                    android:id="@+id/song_name"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:text="@string/song" />
-            </TableRow>
 
             <TableRow
                 android:layout_width="match_parent"
@@ -79,17 +75,20 @@
 
                 <ImageButton
                     android:id="@+id/play_button"
-                    android:layout_width="50dp"
-                    android:layout_height="wrap_content"
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent"
+                    android:layout_weight="1"
                     android:contentDescription="@string/play_button"
                     app:srcCompat="@android:drawable/ic_media_play" />
 
                 <ImageButton
                     android:id="@+id/stop_playing_button"
-                    android:layout_width="90dp"
+                    android:layout_width="match_parent"
                     android:layout_height="match_parent"
+                    android:layout_weight="1"
                     android:contentDescription="@string/stop"
                     app:srcCompat="@android:drawable/title_bar" />
+
             </TableRow>
 
         </TableLayout>
@@ -97,6 +96,7 @@
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
+            android:layout_weight="1"
             android:background="#FFFFFF"
             android:gravity="bottom"
             android:orientation="horizontal">
@@ -105,7 +105,7 @@
                 android:id="@+id/record_button"
                 style="@style/Widget.AppCompat.Button.Borderless"
                 android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
+                android:layout_height="match_parent"
                 android:layout_weight="2"
                 android:text="@string/record" />
 
@@ -113,7 +113,7 @@
                 android:id="@+id/stop_button"
                 style="@style/Widget.AppCompat.Button.Borderless"
                 android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
+                android:layout_height="match_parent"
                 android:layout_weight="2"
                 android:text="@string/stop" />
 
