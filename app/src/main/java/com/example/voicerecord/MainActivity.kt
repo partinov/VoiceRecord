@@ -120,14 +120,12 @@ class MainActivity : AppCompatActivity() {
     // Event listener function for start playing sound button.
     private fun playSong() {
         // Check if app is already playing sound.
-        if (playing) {
+        if (playing)
             Toast.makeText(this, "You are already playing a sound!", Toast.LENGTH_SHORT).show()
-        } // if
         // Check if file is selected for playback.
-        else if (currentSong == null) {
+        else if (currentSong == null)
             Toast.makeText(this, "You haven't selected a file to play!", Toast.LENGTH_SHORT).show()
-        } // else if
-        else {
+        else try {
             // Open file into app.
             val fis = FileInputStream(File(currentSong))
 
@@ -141,7 +139,19 @@ class MainActivity : AppCompatActivity() {
             playing = true
 
             initialiseSeekBar()
-        } // else
+        } // try
+        // Catch file I/O exceptions.
+        catch (e: IOException) {
+            e.printStackTrace()
+        } // catch
+        // Catch media player prepare exceptions.
+        catch (e: IllegalStateException) {
+            e.printStackTrace()
+        } // catch
+        // Catch media player media source exceptions.
+        catch (e: IllegalArgumentException) {
+            e.printStackTrace()
+        } // catch
     } // playSong
 
     // Event listener function for stop playing sound button.
@@ -160,9 +170,7 @@ class MainActivity : AppCompatActivity() {
 
             playing = false
         } // if
-        else {
-            Toast.makeText(this, "You aren't playing a sound!", Toast.LENGTH_SHORT).show()
-        } // else
+        else Toast.makeText(this, "You aren't playing a sound!", Toast.LENGTH_SHORT).show()
     } // stopSong
 
     // A function that initialises the seek bar and sets up callbacks to update it.
@@ -184,42 +192,53 @@ class MainActivity : AppCompatActivity() {
 
     // A function that can be called to update the list.
     private fun updateList() {
-        // Get the filenames of the desired directory as a list.
-        val filesList = File((getExternalFilesDir(null)?.absolutePath)).list()
-        // Put the list into the adapter so it could be listed in the GUI.
-        adapter = ArrayAdapter(this, android.R.layout.simple_list_item_1, filesList)
-        // Add adapter to the list.
-        list.adapter = adapter
+        try {
+            // Get the filenames of the desired directory as a list.
+            val filesList = File((getExternalFilesDir(null)?.absolutePath)).list()
+            // Put the list into the adapter so it could be listed in the GUI.
+            adapter = ArrayAdapter(this, android.R.layout.simple_list_item_1, filesList)
+            // Add adapter to the list.
+            list.adapter = adapter
+        } // try
+        // Catch exceptions when trying to list directory
+        catch (e: IOException) {
+            e.printStackTrace()
+        } // catch
     } // updateList
 
     // Event listener function for start recording sound button.
     @RequiresApi(Build.VERSION_CODES.O)
     private fun startRecording() {
-        //Get current time and date in proper format and output dir.
-        val time = LocalDateTime.now().format(DateTimeFormatter.ofPattern("dd-MM-yyyy-HH:mm:ss"))
-        val outputDir = getExternalFilesDir(null)?.absolutePath
+        if (recording) {
+            Toast.makeText(this, "You are already recording!", Toast.LENGTH_SHORT).show()
+        } else try {
+            //Get current time and date in proper format and output dir.
+            val time =
+                LocalDateTime.now().format(DateTimeFormatter.ofPattern("dd-MM-yyyy-HH:mm:ss"))
+            val outputDir = getExternalFilesDir(null)?.absolutePath
 
-        // Set output path.
-        val output = "$outputDir/Recording-$time.mp3"
+            // Set output path.
+            val output = "$outputDir/Recording-$time.mp3"
 
-        // Set up the media recorder.
-        mediaRecorder = MediaRecorder().apply {
-            setAudioSource(MediaRecorder.AudioSource.MIC)
-            setOutputFormat(MediaRecorder.OutputFormat.MPEG_4)
-            setAudioEncoder(MediaRecorder.AudioEncoder.AAC)
-            setOutputFile(output)
-        } // mediaRecorder
+            // Set up the media recorder.
+            mediaRecorder = MediaRecorder().apply {
+                setAudioSource(MediaRecorder.AudioSource.MIC)
+                setOutputFormat(MediaRecorder.OutputFormat.MPEG_4)
+                setAudioEncoder(MediaRecorder.AudioEncoder.AAC)
+                setOutputFile(output)
+            } // mediaRecorder
 
-        // Start recording.
-        try {
+            // Start recording.
             mediaRecorder?.prepare()
             mediaRecorder?.start()
             recording = true
             Toast.makeText(this, "Recording started!", Toast.LENGTH_SHORT).show()
         } // try
+        // Catch the media player exceptions.
         catch (e: IllegalStateException) {
             e.printStackTrace()
         } // catch
+        // Catch the file directory listing exceptions.
         catch (e: IOException) {
             e.printStackTrace()
         } // catch
@@ -227,7 +246,7 @@ class MainActivity : AppCompatActivity() {
 
     // Event listener function for stop recording sound button.
     private fun stopRecording() {
-        // Check if recording was actually started.
+        // Check if recording wasn't already started.
         if (recording) {
             mediaRecorder?.stop()
             mediaRecorder?.release()
@@ -235,9 +254,7 @@ class MainActivity : AppCompatActivity() {
             Toast.makeText(this, "Recording stopped!", Toast.LENGTH_SHORT).show()
             updateList()
         } // if
-        else {
-            Toast.makeText(this, "You are not recording right now!", Toast.LENGTH_SHORT).show()
-        } // else
+        else Toast.makeText(this, "You are not recording right now!", Toast.LENGTH_SHORT).show()
     } // startRecording
 
 } // MainActivity
