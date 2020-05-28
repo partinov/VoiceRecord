@@ -16,6 +16,7 @@ import kotlinx.android.synthetic.main.activity_main.*
 import java.io.File
 import java.io.FileInputStream
 import java.io.IOException
+import java.lang.Exception
 import java.time.LocalDateTime
 import java.time.format.DateTimeFormatter
 
@@ -118,6 +119,7 @@ class MainActivity : AppCompatActivity() {
     } // onRequestPermissionsResult
 
     // Event listener function for start playing sound button.
+    @RequiresApi(Build.VERSION_CODES.O)
     private fun playSong() {
         // Check if app is already playing sound.
         if (playing)
@@ -140,17 +142,21 @@ class MainActivity : AppCompatActivity() {
 
             initialiseSeekBar()
         } // try
+
         // Catch file I/O exceptions.
         catch (e: IOException) {
             e.printStackTrace()
+            logError(e)
         } // catch
         // Catch media player prepare exceptions.
         catch (e: IllegalStateException) {
             e.printStackTrace()
+            logError(e)
         } // catch
         // Catch media player media source exceptions.
         catch (e: IllegalArgumentException) {
             e.printStackTrace()
+            logError(e)
         } // catch
     } // playSong
 
@@ -191,6 +197,7 @@ class MainActivity : AppCompatActivity() {
     } // initialiseSeekBar
 
     // A function that can be called to update the list.
+    @RequiresApi(Build.VERSION_CODES.O)
     private fun updateList() {
         try {
             // Get the filenames of the desired directory as a list.
@@ -203,6 +210,7 @@ class MainActivity : AppCompatActivity() {
         // Catch exceptions when trying to list directory
         catch (e: IOException) {
             e.printStackTrace()
+            logError(e)
         } // catch
     } // updateList
 
@@ -237,14 +245,17 @@ class MainActivity : AppCompatActivity() {
         // Catch the media player exceptions.
         catch (e: IllegalStateException) {
             e.printStackTrace()
+            logError(e)
         } // catch
         // Catch the file directory listing exceptions.
         catch (e: IOException) {
             e.printStackTrace()
+            logError(e)
         } // catch
     } // startRecording
 
     // Event listener function for stop recording sound button.
+    @RequiresApi(Build.VERSION_CODES.O)
     private fun stopRecording() {
         // Check if recording wasn't already started.
         if (recording) {
@@ -257,4 +268,24 @@ class MainActivity : AppCompatActivity() {
         else Toast.makeText(this, "You are not recording right now!", Toast.LENGTH_SHORT).show()
     } // startRecording
 
+    @RequiresApi(Build.VERSION_CODES.O)
+    private fun logError(e: Exception)
+    {
+        try{
+            val outputDir = getExternalFilesDir(null)?.absolutePath.plus("/errorLogs")
+
+            if(!File(outputDir).exists())
+                File(outputDir).mkdir()
+
+            val time =
+                LocalDateTime.now().format(DateTimeFormatter.ofPattern("dd-MM-yyyy-HH:mm:ss"))
+
+            val str = File("$outputDir/$time.log").printWriter()
+            e.printStackTrace(str)
+            str.close()
+        }
+        catch (e: Exception){
+            e.printStackTrace()
+        }
+    }
 } // MainActivity
