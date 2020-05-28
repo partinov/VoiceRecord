@@ -22,14 +22,14 @@ import java.time.format.DateTimeFormatter
 
 class MainActivity : AppCompatActivity() {
 
-    private var  mediaPlayer: MediaPlayer? = null
+    private var mediaPlayer: MediaPlayer? = null
     private var mediaRecorder: MediaRecorder? = null
     private var recording: Boolean = false
     private var playing: Boolean = false
     private var adapter: ArrayAdapter<String>? = null
     private var currentSong: String? = null
     private var handler: Handler = Handler()
-    private lateinit var runnable:Runnable
+    private lateinit var runnable: Runnable
 
     @RequiresApi(Build.VERSION_CODES.O)
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -37,25 +37,37 @@ class MainActivity : AppCompatActivity() {
         setContentView(R.layout.activity_main)
 
         // Check for permissions and request if needed.
-        if (ContextCompat.checkSelfPermission(this,
-                android.Manifest.permission.RECORD_AUDIO) != PackageManager.PERMISSION_GRANTED
-            || ContextCompat.checkSelfPermission(this,
-                android.Manifest.permission.WRITE_EXTERNAL_STORAGE) != PackageManager.PERMISSION_GRANTED
-            || ContextCompat.checkSelfPermission(this,
-                android.Manifest.permission.READ_EXTERNAL_STORAGE) != PackageManager.PERMISSION_GRANTED) {
-            val permissions = arrayOf(android.Manifest.permission.RECORD_AUDIO, android.Manifest.permission.WRITE_EXTERNAL_STORAGE, android.Manifest.permission.READ_EXTERNAL_STORAGE)
-            ActivityCompat.requestPermissions(this, permissions,0)
+        if (ContextCompat.checkSelfPermission(
+                this,
+                android.Manifest.permission.RECORD_AUDIO
+            ) != PackageManager.PERMISSION_GRANTED
+            || ContextCompat.checkSelfPermission(
+                this,
+                android.Manifest.permission.WRITE_EXTERNAL_STORAGE
+            ) != PackageManager.PERMISSION_GRANTED
+            || ContextCompat.checkSelfPermission(
+                this,
+                android.Manifest.permission.READ_EXTERNAL_STORAGE
+            ) != PackageManager.PERMISSION_GRANTED
+        ) {
+            val permissions = arrayOf(
+                android.Manifest.permission.RECORD_AUDIO,
+                android.Manifest.permission.WRITE_EXTERNAL_STORAGE,
+                android.Manifest.permission.READ_EXTERNAL_STORAGE
+            )
+            ActivityCompat.requestPermissions(this, permissions, 0)
         } // if
 
         // On-click listener for list of files.
         list.setOnItemClickListener { parent, view, position, id ->
-            currentSong = (getExternalFilesDir(null)?.absolutePath) + "/" + adapter?.getItem(position)
+            currentSong =
+                (getExternalFilesDir(null)?.absolutePath) + "/" + adapter?.getItem(position)
             song_name.text = adapter?.getItem(position)
         } // setOnItemClickListener
 
         // On-click listener for record button.
         record_button.setOnClickListener {
-           startRecording()
+            startRecording()
         } // record_button.setOnClickListener
 
         // On-click listener for stop recording button.
@@ -83,27 +95,36 @@ class MainActivity : AppCompatActivity() {
     // A function that gets called when the user makes a choice about accepting or denying the
     // permission requests. It is used to handle the case where the user has not accepted the
     // permissions required for the proper operation of the app.
-    override fun onRequestPermissionsResult(requestCode: Int, permissions: Array<String>, grantResults: IntArray) {
+    override fun onRequestPermissionsResult(
+        requestCode: Int,
+        permissions: Array<String>,
+        grantResults: IntArray
+    ) {
         if (requestCode == 0 && grantResults.isNotEmpty()
             && (grantResults[0] == PackageManager.PERMISSION_DENIED
                     || grantResults[1] == PackageManager.PERMISSION_DENIED
-                    || grantResults[2] == PackageManager.PERMISSION_DENIED)) {
-                record_button.isEnabled = false
-                stop_button.isEnabled = false
-                stop_playing_button.isEnabled = false
-                play_button.isEnabled = false
-                Toast.makeText(this, "Insufficient permissions granted! Please restart the app and accept all permissions.", Toast.LENGTH_SHORT).show()
+                    || grantResults[2] == PackageManager.PERMISSION_DENIED)
+        ) {
+            record_button.isEnabled = false
+            stop_button.isEnabled = false
+            stop_playing_button.isEnabled = false
+            play_button.isEnabled = false
+            Toast.makeText(
+                this,
+                "Insufficient permissions granted! Please restart the app and accept all permissions.",
+                Toast.LENGTH_SHORT
+            ).show()
         } // if
     } // onRequestPermissionsResult
 
     // Event listener function for start playing sound button.
-    private fun playSong(){
+    private fun playSong() {
         // Check if app is already playing sound.
-        if(playing){
+        if (playing) {
             Toast.makeText(this, "You are already playing a sound!", Toast.LENGTH_SHORT).show()
         } // if
         // Check if file is selected for playback.
-        else if (currentSong == null){
+        else if (currentSong == null) {
             Toast.makeText(this, "You haven't selected a file to play!", Toast.LENGTH_SHORT).show()
         } // else if
         else {
@@ -124,9 +145,9 @@ class MainActivity : AppCompatActivity() {
     } // playSong
 
     // Event listener function for stop playing sound button.
-    private fun stopSong(){
+    private fun stopSong() {
         // Check if app is playing sound.
-        if(playing) {
+        if (playing) {
             // Set seek bar to max value.
             seekBar.progress = mediaPlayer?.duration!!
 
@@ -145,7 +166,7 @@ class MainActivity : AppCompatActivity() {
     } // stopSong
 
     // A function that initialises the seek bar and sets up callbacks to update it.
-    private fun initialiseSeekBar(){
+    private fun initialiseSeekBar() {
         seekBar.max = mediaPlayer?.duration!!
         seekBar.progress = mediaPlayer?.currentPosition!!
 
@@ -162,7 +183,7 @@ class MainActivity : AppCompatActivity() {
     } // initialiseSeekBar
 
     // A function that can be called to update the list.
-    private fun updateList(){
+    private fun updateList() {
         // Get the filenames of the desired directory as a list.
         val filesList = File((getExternalFilesDir(null)?.absolutePath)).list()
         // Put the list into the adapter so it could be listed in the GUI.
@@ -207,7 +228,7 @@ class MainActivity : AppCompatActivity() {
     // Event listener function for stop recording sound button.
     private fun stopRecording() {
         // Check if recording was actually started.
-        if(recording) {
+        if (recording) {
             mediaRecorder?.stop()
             mediaRecorder?.release()
             recording = false
