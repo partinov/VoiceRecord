@@ -31,6 +31,7 @@ class MainActivity : AppCompatActivity() {
     private var currentSong: String? = null
     private var handler: Handler = Handler()
     private lateinit var runnable: Runnable
+    private lateinit var recordOutputDir: String
 
     @RequiresApi(Build.VERSION_CODES.O)
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -88,6 +89,11 @@ class MainActivity : AppCompatActivity() {
 
         // On-touch listener for seek bar to disable interaction with it.
         seekBar.setOnTouchListener { v, event -> true }
+
+        // Check if output dir exists and create it if it doesn't.
+        recordOutputDir = getExternalFilesDir(null)?.absolutePath.plus("/recordings")
+        if(!File(recordOutputDir).exists())
+            File(recordOutputDir).mkdir()
 
         // Display the files from the directory in the GUI.
         updateList()
@@ -201,7 +207,7 @@ class MainActivity : AppCompatActivity() {
     private fun updateList() {
         try {
             // Get the filenames of the desired directory as a list.
-            val filesList = File((getExternalFilesDir(null)?.absolutePath)).list()
+            val filesList = File((getExternalFilesDir(null)?.absolutePath.plus("/recordings"))).list()
             // Put the list into the adapter so it could be listed in the GUI.
             adapter = ArrayAdapter(this, android.R.layout.simple_list_item_1, filesList)
             // Add adapter to the list.
@@ -220,13 +226,12 @@ class MainActivity : AppCompatActivity() {
         if (recording) {
             Toast.makeText(this, "You are already recording!", Toast.LENGTH_SHORT).show()
         } else try {
-            //Get current time and date in proper format and output dir.
+            //Get current time and date in proper format.
             val time =
                 LocalDateTime.now().format(DateTimeFormatter.ofPattern("dd-MM-yyyy-HH:mm:ss"))
-            val outputDir = getExternalFilesDir(null)?.absolutePath
 
             // Set output path.
-            val output = "$outputDir/Recording-$time.mp3"
+            val output = "$recordOutputDir/Recording-$time.mp3"
 
             // Set up the media recorder.
             mediaRecorder = MediaRecorder().apply {
