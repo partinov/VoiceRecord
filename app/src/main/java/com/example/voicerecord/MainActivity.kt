@@ -5,13 +5,10 @@ import android.content.pm.PackageManager
 import android.media.MediaPlayer
 import android.media.MediaRecorder
 import android.net.Uri
-import android.os.Build
 import android.os.Bundle
 import android.os.Handler
-import android.util.Log
 import android.widget.ArrayAdapter
 import android.widget.Toast
-import androidx.annotation.RequiresApi
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
@@ -20,8 +17,8 @@ import java.io.File
 import java.io.FileInputStream
 import java.io.IOException
 import java.lang.Exception
-import java.time.LocalDateTime
-import java.time.format.DateTimeFormatter
+import java.text.SimpleDateFormat
+import java.util.*
 
 
 class MainActivity : AppCompatActivity() {
@@ -37,7 +34,6 @@ class MainActivity : AppCompatActivity() {
     private lateinit var recordOutputDir: String
     private lateinit var errorOutputDir: String
 
-    @RequiresApi(Build.VERSION_CODES.O)
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
@@ -64,10 +60,20 @@ class MainActivity : AppCompatActivity() {
             ActivityCompat.requestPermissions(this, permissions, 0)
         } // if
 
+        // Check if output dir exists and create it if it doesn't.
+        recordOutputDir = getExternalFilesDir(null)?.absolutePath.plus("/recordings")
+        if(!File(recordOutputDir).exists())
+            File(recordOutputDir).mkdir()
+
+        // Get error log output dir and create it if it doesn't exist.
+        errorOutputDir = getExternalFilesDir(null)?.absolutePath.plus("/errorLogs")
+        if(!File(errorOutputDir).exists())
+            File(errorOutputDir).mkdir()
+
         // On-click listener for list of files.
         list.setOnItemClickListener { parent, view, position, id ->
             currentSong =
-                (getExternalFilesDir(null)?.absolutePath) + "/" + adapter?.getItem(position)
+                recordOutputDir.plus("/").plus( adapter?.getItem(position))
             song_name.text = adapter?.getItem(position)
         } // setOnItemClickListener
 
@@ -99,16 +105,6 @@ class MainActivity : AppCompatActivity() {
         // On-touch listener for seek bar to disable interaction with it.
         seekBar.setOnTouchListener { v, event -> true }
 
-        // Check if output dir exists and create it if it doesn't.
-        recordOutputDir = getExternalFilesDir(null)?.absolutePath.plus("/recordings")
-        if(!File(recordOutputDir).exists())
-            File(recordOutputDir).mkdir()
-
-        // Get error log output dir and create it if it doesn't exist.
-        errorOutputDir = getExternalFilesDir(null)?.absolutePath.plus("/errorLogs")
-        if(!File(errorOutputDir).exists())
-            File(errorOutputDir).mkdir()
-
         // Display the files from the directory in the GUI.
         updateList()
     } // onCreate
@@ -139,7 +135,6 @@ class MainActivity : AppCompatActivity() {
     } // onRequestPermissionsResult
 
     // Event listener function for start playing sound button.
-    @RequiresApi(Build.VERSION_CODES.O)
     private fun playSong() {
         // Check if app is already playing sound.
         if (playing)
@@ -216,7 +211,6 @@ class MainActivity : AppCompatActivity() {
     } // initialiseSeekBar
 
     // A function that can be called to update the list.
-    @RequiresApi(Build.VERSION_CODES.O)
     private fun updateList() {
         try {
             // Get the filenames of the desired directory as a list.
@@ -234,17 +228,15 @@ class MainActivity : AppCompatActivity() {
     } // updateList
 
     // Event listener function for start recording sound button.
-    @RequiresApi(Build.VERSION_CODES.O)
     private fun startRecording() {
         if (recording) {
             Toast.makeText(this, "You are already recording!", Toast.LENGTH_SHORT).show()
         } else try {
             //Get current time and date in proper format.
-            val time =
-                LocalDateTime.now().format(DateTimeFormatter.ofPattern("dd-MM-yyyy-HH:mm:ss"))
+            val time = SimpleDateFormat("dd_MM_yyyy_HH_mm_ss").format(Date())
 
             // Set output path.
-            val output = "$recordOutputDir/Recording-$time.mp3"
+            val output = "$recordOutputDir/Recording_$time.mp3"
 
             // Set up the media recorder.
             mediaRecorder = MediaRecorder().apply {
@@ -270,10 +262,12 @@ class MainActivity : AppCompatActivity() {
             e.printStackTrace()
             logError(e)
         } // catch
+        catch (e: Exception){
+            e.printStackTrace()
+        }
     } // startRecording
 
     // Event listener function for stop recording sound button.
-    @RequiresApi(Build.VERSION_CODES.O)
     private fun stopRecording() {
         // Check if recording wasn't already started.
         if (recording) {
@@ -287,13 +281,11 @@ class MainActivity : AppCompatActivity() {
     } // startRecording
 
     // A function that saves a thrown exception's stack trace to a log file.
-    @RequiresApi(Build.VERSION_CODES.O)
     private fun logError(e: Exception)
     {
         try{
             // Get current date and time to be used as file name.
-            val time =
-                LocalDateTime.now().format(DateTimeFormatter.ofPattern("dd-MM-yyyy-HH:mm:ss"))
+            val time = SimpleDateFormat("dd-MM-yyyy-HH-mm-ss").format(Date())
 
             // Create a print writer to write into the log file.
             val output = File("$errorOutputDir/$time.log").printWriter()
@@ -308,7 +300,6 @@ class MainActivity : AppCompatActivity() {
     } // logError
 
     // A function that emails all error logs to an email address.
-    @RequiresApi(Build.VERSION_CODES.O)
     private fun sendLogs(){
         val filesList = File(errorOutputDir).listFiles()
 
