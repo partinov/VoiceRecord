@@ -15,5 +15,6 @@
     <string name="recordings">Recordings</string>
     <string name="song">Select a song to play</string>
     <string name="play_button">Play</string>
+    <string name="send_logs">Send error logs</string>
 
 </resources>
