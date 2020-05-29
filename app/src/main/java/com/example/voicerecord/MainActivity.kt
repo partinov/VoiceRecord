@@ -1,11 +1,14 @@
 package com.example.voicerecord
 
+import android.content.Intent
 import android.content.pm.PackageManager
 import android.media.MediaPlayer
 import android.media.MediaRecorder
+import android.net.Uri
 import android.os.Build
 import android.os.Bundle
 import android.os.Handler
+import android.util.Log
 import android.widget.ArrayAdapter
 import android.widget.Toast
 import androidx.annotation.RequiresApi
@@ -32,6 +35,7 @@ class MainActivity : AppCompatActivity() {
     private var handler: Handler = Handler()
     private lateinit var runnable: Runnable
     private lateinit var recordOutputDir: String
+    private lateinit var errorOutputDir: String
 
     @RequiresApi(Build.VERSION_CODES.O)
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -87,6 +91,11 @@ class MainActivity : AppCompatActivity() {
             stopSong()
         } // stop_playing_button.setOnClickListener
 
+        // On-click listener for send error logs button.
+        send_logs_button.setOnClickListener {
+            sendLogs()
+        } // send_logs_button.setOnClickListener
+
         // On-touch listener for seek bar to disable interaction with it.
         seekBar.setOnTouchListener { v, event -> true }
 
@@ -94,6 +103,11 @@ class MainActivity : AppCompatActivity() {
         recordOutputDir = getExternalFilesDir(null)?.absolutePath.plus("/recordings")
         if(!File(recordOutputDir).exists())
             File(recordOutputDir).mkdir()
+
+        // Get error log output dir and create it if it doesn't exist.
+        errorOutputDir = getExternalFilesDir(null)?.absolutePath.plus("/errorLogs")
+        if(!File(errorOutputDir).exists())
+            File(errorOutputDir).mkdir()
 
         // Display the files from the directory in the GUI.
         updateList()
@@ -148,7 +162,6 @@ class MainActivity : AppCompatActivity() {
 
             initialiseSeekBar()
         } // try
-
         // Catch file I/O exceptions.
         catch (e: IOException) {
             e.printStackTrace()
@@ -273,21 +286,17 @@ class MainActivity : AppCompatActivity() {
         else Toast.makeText(this, "You are not recording right now!", Toast.LENGTH_SHORT).show()
     } // startRecording
 
+    // A function that saves a thrown exception's stack trace to a log file.
     @RequiresApi(Build.VERSION_CODES.O)
     private fun logError(e: Exception)
     {
         try{
-            // Get error log output dir and create it if it doesn't exist.
-            val outputDir = getExternalFilesDir(null)?.absolutePath.plus("/errorLogs")
-            if(!File(outputDir).exists())
-                File(outputDir).mkdir()
-
             // Get current date and time to be used as file name.
             val time =
                 LocalDateTime.now().format(DateTimeFormatter.ofPattern("dd-MM-yyyy-HH:mm:ss"))
 
             // Create a print writer to write into the log file.
-            val output = File("$outputDir/$time.log").printWriter()
+            val output = File("$errorOutputDir/$time.log").printWriter()
 
             // Save stack trace to log file and close stream.
             e.printStackTrace(output)
@@ -297,4 +306,45 @@ class MainActivity : AppCompatActivity() {
             e.printStackTrace()
         } // catch
     } // logError
+
+    // A function that emails all error logs to an email address.
+    @RequiresApi(Build.VERSION_CODES.O)
+    private fun sendLogs(){
+        val filesList = File(errorOutputDir).listFiles()
+
+        // If there are no logs, notify the user.
+        if (filesList.count() == 0)
+            Toast.makeText(this, "There are no logs to send!", Toast.LENGTH_SHORT).show()
+        else {
+            // ACTION_SEND action to launch an email client installed on the Android device.
+            val mIntent = Intent(Intent.ACTION_SEND)
+
+            // To send an email you need to specify mailto: as URI using setData() method
+            // and data type will be to text/plain using setType() method
+            mIntent.data = Uri.parse("mailto:")
+            mIntent.type = "text/plain"
+
+            // Put recipient email address and email subject in intent.
+            mIntent.putExtra(Intent.EXTRA_EMAIL, arrayOf("partinov@gmail.com"))
+            mIntent.putExtra(Intent.EXTRA_SUBJECT, "VoiceRecord App Error Report")
+
+            // Save all logs to a single string as an email body.
+            var emailBody = ""
+            filesList.forEach { emailBody = emailBody.plus(it.readText()).plus("\n") }
+
+            //put the message in the intent
+            mIntent.putExtra(Intent.EXTRA_TEXT, emailBody)
+
+            // Attempt to start the activity and send the email
+            try {
+                startActivity(Intent.createChooser(mIntent, "Choose Email Client..."))
+            } // try
+            // Catch any exceptions that might arise.
+            catch (e: Exception){
+                logError(e)
+                e.printStackTrace()
+            } // catch
+        } // else
+    } // sendLogs
+
 } // MainActivity
