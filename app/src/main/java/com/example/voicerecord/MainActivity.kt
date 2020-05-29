@@ -277,20 +277,24 @@ class MainActivity : AppCompatActivity() {
     private fun logError(e: Exception)
     {
         try{
+            // Get error log output dir and create it if it doesn't exist.
             val outputDir = getExternalFilesDir(null)?.absolutePath.plus("/errorLogs")
-
             if(!File(outputDir).exists())
                 File(outputDir).mkdir()
 
+            // Get current date and time to be used as file name.
             val time =
                 LocalDateTime.now().format(DateTimeFormatter.ofPattern("dd-MM-yyyy-HH:mm:ss"))
 
-            val str = File("$outputDir/$time.log").printWriter()
-            e.printStackTrace(str)
-            str.close()
-        }
+            // Create a print writer to write into the log file.
+            val output = File("$outputDir/$time.log").printWriter()
+
+            // Save stack trace to log file and close stream.
+            e.printStackTrace(output)
+            output.close()
+        } // try
         catch (e: Exception){
             e.printStackTrace()
-        }
-    }
+        } // catch
+    } // logError
 } // MainActivity
